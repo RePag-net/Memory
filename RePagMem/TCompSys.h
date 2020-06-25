@@ -1,5 +1,5 @@
 /****************************************************************************
-  dllmain.cpp
+  TCompSys.h
   For more information see https://github.com/RePag/Memory
 ****************************************************************************/
 
@@ -27,20 +27,14 @@
   SOFTWARE.
 ******************************************************************************/
 
-#include "pch.h"
-
-SYSTEM_INFO stSystem_Info;
+#pragma once
 //---------------------------------------------------------------------------
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
+typedef struct STTHVMFrei
 {
-  switch(ul_reason_for_call){
-      case DLL_PROCESS_ATTACH: GetSystemInfo(&stSystem_Info); 
-                               CPUID(stSystem_Info); 
-                               break;
-      case DLL_THREAD_ATTACH:
-      case DLL_THREAD_DETACH:
-      case DLL_PROCESS_DETACH: break;
-  }
-  return TRUE;
-}
+  bool bEnde;
+  void* vmSpeicher;
+  HANDLE heFertig;
+  HANDLE hthFrei;
+} STTHVMFrei;
+DWORD WINAPI thFrei(_In_ LPVOID lpvParam);
 //---------------------------------------------------------------------------

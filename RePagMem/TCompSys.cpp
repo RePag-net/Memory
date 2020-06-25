@@ -1,5 +1,5 @@
 /****************************************************************************
-  dllmain.cpp
+  TCompSyS.cpp
   For more information see https://github.com/RePag/Memory
 ****************************************************************************/
 
@@ -28,19 +28,30 @@
 ******************************************************************************/
 
 #include "pch.h"
-
-SYSTEM_INFO stSystem_Info;
 //---------------------------------------------------------------------------
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
+#define __vmSpeicher ((VMSPEICHER)((STTHVMFrei*)lpvParam)->vmSpeicher)
+//---------------------------------------------------------------------------
+DWORD WINAPI thFrei(_In_ LPVOID lpvParam)
 {
-  switch(ul_reason_for_call){
-      case DLL_PROCESS_ATTACH: GetSystemInfo(&stSystem_Info); 
-                               CPUID(stSystem_Info); 
-                               break;
-      case DLL_THREAD_ATTACH:
-      case DLL_THREAD_DETACH:
-      case DLL_PROCESS_DETACH: break;
+  WaitForSingleObject(((STTHVMFrei*)lpvParam)->heFertig, INFINITE);
+  EnterCriticalSection(&__vmSpeicher->csFrei);
+  while(!((STTHVMFrei*)lpvParam)->bEnde){
+    do{
+      LeaveCriticalSection(&__vmSpeicher->csFrei);
+      VMFrei(__vmSpeicher, *__vmSpeicher->vfFrei);
+      EnterCriticalSection(&__vmSpeicher->csFrei);
+    }
+    while(++__vmSpeicher->vfFrei < __vmSpeicher->vfBlock);
+    __vmSpeicher->vfFrei = (VMFREI)&__vmSpeicher->vsFrei[16];
+    __vmSpeicher->vfBlock = (VMFREI)&__vmSpeicher->vsFrei[16];
+    do{
+      LeaveCriticalSection(&__vmSpeicher->csFrei);
+      WaitForSingleObject(((STTHVMFrei*)lpvParam)->heFertig, INFINITE);
+      EnterCriticalSection(&__vmSpeicher->csFrei);
+    }
+    while(__vmSpeicher->vfFrei == __vmSpeicher->vfBlock);
   }
-  return TRUE;
+  CloseHandle(((STTHVMFrei*)lpvParam)->heFertig);
+  return NULL;
 }
 //---------------------------------------------------------------------------
