@@ -36,10 +36,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
   switch(ul_reason_for_call){
       case DLL_PROCESS_ATTACH: GetSystemInfo(&stSystem_Info); 
                                CPUID(stSystem_Info); 
+                               vmStandart = InitVirtualMem(true);
                                break;
       case DLL_THREAD_ATTACH:
-      case DLL_THREAD_DETACH:
-      case DLL_PROCESS_DETACH: break;
+      case DLL_THREAD_DETACH:  break;
+      case DLL_PROCESS_DETACH: FreeVirtualMem(vmStandart); break;
   }
   return TRUE;
 }
