@@ -49,6 +49,9 @@
     <CustomBuild Include="Memory_x86.asm">
       <Filter>Quelldateien</Filter>
     </CustomBuild>
+    <CustomBuild Include="Memory_x64.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RePagMem.rc">

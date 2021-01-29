@@ -6,7 +6,7 @@
 /****************************************************************************
   The MIT License(MIT)
 
-  Copyright(c) 2020 René Pagel
+  Copyright(c) 2021 René Pagel
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this softwareand associated documentation files(the "Software"), to deal
@@ -43,30 +43,30 @@ using PBIT128 = BIT128*;
 using PBIT256 = BIT256*;
 using BIT128A = __declspec(align(16)) BIT128;
 using BIT256A = __declspec(align(32)) BIT256;
-//---------------------------------------------------------------------------
+
 extern VMEMORY vmStandart;
 extern DWORD dwEineSpeicherSeite;
 extern DWORD dwDoppelSpeicherSeite;
 //---------------------------------------------------------------------------
 typedef struct STSpeicher
 {
-	VMBLOCK vbName;
+  VMBLOCK vbName;
   VMEMORY vmMemory;
 } STSpeicher;
 //---------------------------------------------------------------------------
 typedef struct STBlock
 {
- VMBLOCK vbAdresse;
- ULONG ulBytes;
+  VMBLOCK vbAdresse;
+  ULONG ulBytes;
 } STBlock;
 typedef STBlock* VMEINTRAG;
 //---------------------------------------------------------------------------
 typedef struct STSeiten
 {
- ULONG ulBelegt;
- ULONG ulReserve;
- VMSEITE vsVorherige;
- VMSEITE vsNachste;
+  ULONG ulBelegt;
+  ULONG ulReserve;
+  VMSEITE vsVorherige;
+  VMSEITE vsNachste;
 } STSeiten;
 typedef STSeiten* VMSEITENKOPF;
 //---------------------------------------------------------------------------
@@ -98,23 +98,24 @@ struct STSuchFrei
 #include "TCompSys.h"
 struct STVirtualSpeicher
 {
- bool bAuslagern;
- bool bMapped;
- VMSEITE vsErsteTabelle;
- VMSEITE vsLetzteTabelle;
- VMSEITE vsReserveTabelle;
- VMSEITE vsErsteInhalt;
- VMSEITE vsLetzteInhaltKlein;
- VMSEITE vsLetzteInhaltGross;
- VMSEITE vsReserveInhalt;
- VMSEITE vsFrei;
- VMFREI vfFrei;
- VMFREI vfBlock;
- STTHVMFrei thvmFrei;
- CRITICAL_SECTION csTabelle;
- CRITICAL_SECTION csFrei;
+  VMSEITE vsErsteTabelle;
+  VMSEITE vsLetzteTabelle;
+  VMSEITE vsReserveTabelle;
+  VMSEITE vsErsteInhalt;
+  VMSEITE vsLetzteInhaltKlein;
+  VMSEITE vsLetzteInhaltGross;
+  VMSEITE vsReserveInhalt;
+  VMSEITE vsFrei;
+  VMFREI vfFrei;
+  VMFREI vfBlock;
+  STTHVMFrei thvmFrei;
+  CRITICAL_SECTION csTabelle;
+  CRITICAL_SECTION csFrei;
+  bool bAuslagern;
+  bool bMapped;
 };
 typedef STVirtualSpeicher* VMSPEICHER;
+
 //---------------------------------------------------------------------------
 VMEMORY __vectorcall InitVirtualMemA(_In_ bool bAuslagern);
 void __vectorcall CPUID(SYSTEM_INFO& stSystem_Info);
