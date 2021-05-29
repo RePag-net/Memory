@@ -30,18 +30,18 @@
 #include "pch.h"
 
 SYSTEM_INFO stSystem_Info;
-VMEMORY vmStandart;
+VMEMORY vmStandard;
 //---------------------------------------------------------------------------
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
   switch(ul_reason_for_call){
       case DLL_PROCESS_ATTACH: GetSystemInfo(&stSystem_Info); 
                                CPUID(stSystem_Info); 
-                               vmStandart = InitVirtualMem(true);
+                               vmStandard = InitVirtualMem(true);
                                break;
       case DLL_THREAD_ATTACH:
       case DLL_THREAD_DETACH:  break;
-      case DLL_PROCESS_DETACH: FreeVirtualMem(vmStandart); break;
+      case DLL_PROCESS_DETACH: FreeVirtualMem(vmStandard); break;
   }
   return TRUE;
 }

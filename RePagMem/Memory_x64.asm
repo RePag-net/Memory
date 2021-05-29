@@ -38,7 +38,7 @@ CS_Prozessor SEGMENT EXECUTE
 ;----------------------------------------------------------------------------
 stSystemInfo = 4
 ?CPUID@@YQXAEAU_SYSTEM_INFO@@@Z PROC
-    mov ecx, dword ptr [rcx + 4]
+		mov ecx, dword ptr [rcx + 4]
 		mov dword ptr [dqi_EineSpeicherSeite], ecx
 		imul ecx, 02h
 		mov dword ptr [dqi_DoppelSpeicherSeite], ecx
@@ -52,15 +52,15 @@ stSystemInfo = 4
 		xor rax, rax
 		bt rdx, 26
 		jne short Ende
-		mov eax, 01h
+		mov rax, 01h
 
 	Ende:
 		ret
 ?Is_SSE2@@YQ_NXZ ENDP
 ;----------------------------------------------------------------------------
 ?Is_RNGenerator@@YQDXZ PROC
-    mov rax, 07h
-    xor rcx, rcx
+		mov rax, 07h
+		xor rcx, rcx
 		cpuid
 		bt rbx, 18
 		je short RDSEED1
@@ -105,8 +105,8 @@ stSystemInfo = 4
 ?Is_AVX@@YQ_NXZ ENDP
 ;----------------------------------------------------------------------------
 ?Is_AVX2@@YQ_NXZ PROC
-    mov rax, 07h
-    xor rcx, rcx
+		mov rax, 07h
+		xor rcx, rcx
 		cpuid
 		xor rax, rax
 		bt rbx, 5
@@ -186,26 +186,26 @@ VMSeitenkopf_ulBelegt = 0
 STSuchBlock_vsTabelle = 8
 ?VMBlock_ScrollEintrage_VonEnde@@YQXAEAUSTSuchBlock@@PEAD@Z PROC
 		mov rax, rcx
-    mov r8, qword ptr STSuchBlock_vsTabelle[rax]
-    mov r9, rdx
+		mov r8, qword ptr STSuchBlock_vsTabelle[rax]
+		mov r9, rdx
 
 	Anfang:
-    cmp r8, r9
+		cmp r8, r9
 		je short Ende
 
-    mov ecx, dword ptr VMSeitenkopf_ulBelegt[r8]
+		mov ecx, dword ptr VMSeitenkopf_ulBelegt[r8]
 		cmp rcx, dqi_DoppelSpeicherSeite
-    jl short Kurzer
-    sub rcx, 16
+		jl short Kurzer
+		sub rcx, 16
 
-  Kurzer:
-	  mov r11, r8
-    add r11, rcx
+	Kurzer:
+		mov r11, r8
+		add r11, rcx
 		mov r10, r11
-    sub r10, 16
+		sub r10, 16
 
-    sub rcx, 32
-    shr rcx, 4
+		sub rcx, 32
+		shr rcx, 4
 
 	CopyEintrag:
 		vmovdqu xmm0, xmmword ptr [r10]
@@ -217,11 +217,11 @@ STSuchBlock_vsTabelle = 8
 		mov rcx, qword ptr VMSeitenkopf_vsNachsteSeite[r8]
 		test rcx, rcx
 		jne short Vorherige
-  
-	  add dword ptr VMSeitenkopf_ulBelegt[r8], 16
+	
+		add dword ptr VMSeitenkopf_ulBelegt[r8], 16
 
 	Vorherige:
-	  mov r8, qword ptr VMSeitenkopf_vsVorherigeSeite[r8]
+		mov r8, qword ptr VMSeitenkopf_vsVorherigeSeite[r8]
 		mov qword ptr STSuchBlock_vsTabelle[rax], r8
 
 		mov rcx, dqi_DoppelSpeicherSeite
@@ -250,25 +250,25 @@ STSuchBlock_veEintrag = 32
 STSuchBlock_vsTabelle = 8
 STSuchBlock_ulBytes = 4
 ?VMBlock_ScrollEintrage_Einfugen@@YQXAEAUSTSuchBlock@@@Z PROC PUBLIC
-    mov rax, rcx
+		mov rax, rcx
 		mov rdx, qword ptr STSuchBlock_vsTabelle[rax]
 
-    mov ecx, dword ptr VMSeitenkopf_ulBelegt[rdx]
-    cmp rcx, dqi_DoppelSpeicherSeite
-    jne Kurzer
-    sub rcx, 16
+		mov ecx, dword ptr VMSeitenkopf_ulBelegt[rdx]
+		cmp rcx, dqi_DoppelSpeicherSeite
+		jne Kurzer
+		sub rcx, 16
 
-  Kurzer:
-	  mov r9, rdx
-    add r9, rcx
+	Kurzer:
+		mov r9, rdx
+		add r9, rcx
 		mov r8, r9
-    sub r8, 16
+		sub r8, 16
 
 		mov rcx, r8
-    sub rcx, qword ptr STSuchBlock_veEintrag[rax]
+		sub rcx, qword ptr STSuchBlock_veEintrag[rax]
 		test rcx, rcx
 		je KeinScroll
-    shr rcx, 4
+		shr rcx, 4
 
 	CopyEintrag:
 		vmovdqu xmm0, xmmword ptr [r8]
@@ -286,7 +286,7 @@ STSuchBlock_ulBytes = 4
 		mov rax, qword ptr VMSeitenkopf_vsNachsteSeite[rdx]
 		test rax, rax
 		jne Ende
-	  add dword ptr VMSeitenkopf_ulBelegt[rdx], 16
+		add dword ptr VMSeitenkopf_ulBelegt[rdx], 16
 
 	Ende:
 		ret
@@ -313,62 +313,6 @@ _Text ENDS
 ;----------------------------------------------------------------------------
 _Text SEGMENT
 VMSeitenkopf_vsNachsteSeite = 16
-VMFrei_ScrollEintrage PROC PRIVATE
-		cmp rdx, 16
-		je Scroll_16
-
-	CopyEintrag_32:
-		vmovdqu ymm0, ymmword ptr [r9]
-		vmovdqu ymmword ptr [r10], ymm0
-		add r10, 32
-		add r9, 32
-		sub rcx, 32
-		cmp rcx, 16
-		jg CopyEintrag_32
-		je Scroll_16
-
-		mov rax, qword ptr VMSeitenkopf_vsNachsteSeite[r8]
-		test rax, rax
-		jne Ende
-		jmp Nullsetzen_16
-
-	Scroll_16:
-		shr rcx, 4
-	CopyEintrag_16:
-		movdqu xmm0, xmmword ptr [r9]
-		movdqu xmmword ptr [r10], xmm0
-		add r10, r9
-		add r9, 16
-		loop CopyEintrag_16
-
-		mov rax, qword ptr VMSeitenkopf_vsNachsteSeite[r8]
-		test rax, rax
-		jne Ende
-
-		cmp rdx, 32
-		jl Nullsetzen_16
-		je Nullsetzen_32
-		sub r10, 16
-
-	Nullsetzen_32:
-		sub r10, 16
-
-	Nullsetzen_16:
-	  vpxor xmm0, xmm0, xmm0
-    mov rcx, rdx
-    shr rcx, 4
-  CopyEintrag_0:
-    vmovdqu xmmword ptr [r10], xmm0
-		add r10, 16
-		loop CopyEintrag_0
-
-	Ende:
-		ret
-VMFrei_ScrollEintrage ENDP
-_Text ENDS
-;----------------------------------------------------------------------------
-_Text SEGMENT
-VMSeitenkopf_vsNachsteSeite = 16
 VMSeitenkopf_ulBelegt = 0
 STSuchFrei_veScrollEintrag = 48
 STSuchFrei_ulScrollSprung = 40
@@ -377,13 +321,13 @@ STSuchFrei_vsTabelle = 0
 		mov r8, qword ptr STSuchFrei_vsTabelle[rcx]
 		mov edx, dword ptr STSuchFrei_ulScrollSprung[rcx]
 
-    mov r10, qword ptr STSuchFrei_veScrollEintrag[rcx]
-    mov r9, r10
-    add r9, rdx
+		mov r10, qword ptr STSuchFrei_veScrollEintrag[rcx]
+		mov r9, r10
+		add r9, rdx
 
-    mov ecx, dword ptr VMSeitenkopf_ulBelegt[r8]
-    add rcx, r8
-    sub rcx, r9
+		mov ecx, dword ptr VMSeitenkopf_ulBelegt[r8]
+		add rcx, r8
+		sub rcx, r9
 
 		cmp rdx, 16
 		je short Scroll_16
@@ -425,11 +369,11 @@ STSuchFrei_vsTabelle = 0
 		sub r10, 16
 
 	Nullsetzen_16:
-	  vpxor xmm0, xmm0, xmm0
-    mov rcx, rdx
-    shr rcx, 4
-  CopyEintrag_0:
-    vmovdqu xmmword ptr [r10], xmm0
+		vpxor xmm0, xmm0, xmm0
+		mov rcx, rdx
+		shr rcx, 4
+	CopyEintrag_0:
+		vmovdqu xmmword ptr [r10], xmm0
 		add r10, 16
 		loop short CopyEintrag_0
 
@@ -444,20 +388,20 @@ VMSeitenkopf_ulBelegt = 0
 STSuchFrei_ulScrollSprung = 40
 STSuchFrei_vsTabelle = 0
 ?VMFrei_ScrollEintrage_2@@YQXAEAUSTSuchFrei@@@Z PROC PUBLIC
-    mov r8, qword ptr STSuchFrei_vsTabelle[rcx]
+		mov r8, qword ptr STSuchFrei_vsTabelle[rcx]
 		mov edx, dword ptr STSuchFrei_ulScrollSprung[rcx]
 
 		mov r10, r8
-    add r10, 32
-    mov r9, r10
-    add r9, rdx
+		add r10, 32
+		mov r9, r10
+		add r9, rdx
 
-    mov ecx, dword ptr VMSeitenkopf_ulBelegt[r8]
-    sub rcx, 32
-    sub rcx, rdx
+		mov ecx, dword ptr VMSeitenkopf_ulBelegt[r8]
+		sub rcx, 32
+		sub rcx, rdx
 
 		cmp rdx, 16
-		je Scroll_16
+		je short Scroll_16
 
 	CopyEintrag_32:
 		vmovdqu ymm0, ymmword ptr [r9]
@@ -466,13 +410,13 @@ STSuchFrei_vsTabelle = 0
 		add r9, 32
 		sub rcx, 32
 		cmp rcx, 16
-		jg CopyEintrag_32
-		je Scroll_16
+		jg short CopyEintrag_32
+		je short Scroll_16
 
 		mov rax, qword ptr VMSeitenkopf_vsNachsteSeite[r8]
 		test rax, rax
-		jne Ende
-		jmp Nullsetzen_16
+		jne short Ende
+		jmp short Nullsetzen_16
 
 	Scroll_16:
 		shr rcx, 4
@@ -481,28 +425,28 @@ STSuchFrei_vsTabelle = 0
 		vmovdqu xmmword ptr [r10], xmm0
 		mov r10, r9
 		add r9, 16
-		loop CopyEintrag_16
+		loop short CopyEintrag_16
 
 		mov rax, qword ptr VMSeitenkopf_vsNachsteSeite[r8]
 		test rax, rax
-		jne Ende
+		jne short Ende
 
 		cmp rdx, 32
-		jl Nullsetzen_16
-		je Nullsetzen_32
+		jl short Nullsetzen_16
+		je short Nullsetzen_32
 		sub r10, 16
 
 	Nullsetzen_32:
 		sub r10, 16
 
 	Nullsetzen_16:
-	  vpxor xmm0, xmm0, xmm0
-    mov rcx, rdx
-    shr rcx, 4
-  CopyEintrag_0:
-    vmovdqu xmmword ptr [r10], xmm0
+		vpxor xmm0, xmm0, xmm0
+		mov rcx, rdx
+		shr rcx, 4
+	CopyEintrag_0:
+		vmovdqu xmmword ptr [r10], xmm0
 		add r10, 16
-		loop CopyEintrag_0
+		loop short CopyEintrag_0
 
 	Ende:
 		ret

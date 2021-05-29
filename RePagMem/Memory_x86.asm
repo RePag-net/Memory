@@ -270,11 +270,11 @@ stSuchBlock_vsTabelle = 8
 
 	Anfang:
     cmp ebx, dword ptr s_vsSeiteAlt[esp]
-		je Ende
+		je short Ende
 
     mov ecx, dword ptr ulBelegt[ebx]
 		cmp ecx, dword ptr [dwDoppelSpeicherSeite]
-    jl Kurzer
+    jl short Kurzer
     sub ecx, 08h
 
   Kurzer:
@@ -291,11 +291,10 @@ stSuchBlock_vsTabelle = 8
 		movq qword ptr [edi], xmm0
 		mov edi, esi
 		sub esi, 08h
-		loop CopyEintrag
-		;emms
+		loop short CopyEintrag
 
 		cmp dword ptr vsNachsteSeite[ebx], 0h
-		jne Vorherige
+		jne short Vorherige
   
 	  add dword ptr ulBelegt[ebx], 08h
 
@@ -314,7 +313,7 @@ stSuchBlock_vsTabelle = 8
 		sub ecx, 04h
 		mov esi, dword ptr [ecx]
 		mov dword ptr [edx + 10h], esi
-		jmp Anfang
+		jmp short Anfang
 
 	Ende:
 		pop	edi
@@ -341,7 +340,7 @@ stSuchBlock_ulBytes = 4
 
     mov ecx, dword ptr ulBelegt[edx]
     cmp ecx, dword ptr [dwDoppelSpeicherSeite]
-    jne Kurzer
+    jne short Kurzer
     sub ecx, 08h
 
   Kurzer:
@@ -353,7 +352,7 @@ stSuchBlock_ulBytes = 4
 		mov ecx, esi
     sub ecx, dword ptr stSuchBlock_veEintrag[eax]
 		test ecx, ecx
-		je KeinScroll
+		je short KeinScroll
     shr ecx, 03h
 
 	CopyEintrag:
@@ -361,7 +360,7 @@ stSuchBlock_ulBytes = 4
 		movq qword ptr [edi], xmm0
 		mov edi, esi
 		sub esi, 08h
-		loop CopyEintrag
+		loop short CopyEintrag
 
 	KeinScroll:
 		mov ecx, dword ptr [esi + 04h]
@@ -370,7 +369,7 @@ stSuchBlock_ulBytes = 4
 		mov dword ptr [edi], 0h
 
 		cmp dword ptr vsNachsteSeite[edx], 0h
-		jne Ende
+		jne short Ende
 	  add dword ptr ulBelegt[edx], 08h
 
 	Ende:
@@ -392,72 +391,13 @@ stSuchBlock_vsTabelle = 8
 		sub edx, 08h
 		add edx, ebx
 		cmp edx, dword ptr stSuchBlock_veEintrag[ecx]
-		jne Ende
+		jne short Ende
 		mov al, 01h
 
 	Ende:
 		pop	ebx
 		ret 0
 ?LetzterEintrag@@YQ_NAAUSTSuchBlock@@@Z ENDP
-_Text ENDS
-;----------------------------------------------------------------------------
-_Text SEGMENT
-vsNachsteSeite = 12
-VMFrei_ScrollEintrage PROC PRIVATE
-		cmp edx, 8
-		je Scroll_8
-
-	CopyEintrag_16:
-		movdqu xmm0, xmmword ptr [esi]
-		movdqu xmmword ptr [edi], xmm0
-		add edi, 16
-		add esi, 16
-		sub ecx, 16
-		cmp ecx, 8
-		jg CopyEintrag_16
-		je Scroll_8
-
-		mov eax, dword ptr vsNachsteSeite[ebx]
-		test eax, eax
-		;cmp dword ptr vsNachsteSeite[ebx], 0h
-		jne Ende
-		jmp Nullsetzen_8
-
-	Scroll_8:
-		shr ecx, 3
-	CopyEintrag_8:
-		movq xmm0, qword ptr [esi]
-		movq qword ptr [edi], xmm0
-		mov edi, esi
-		add esi, 8
-		loop CopyEintrag_8
-
-		mov eax, dword ptr vsNachsteSeite[ebx]
-		test eax, eax
-		;cmp dword ptr vsNachsteSeite[ebx], 0h
-		jne Ende
-
-		cmp edx, 16
-		jl Nullsetzen_8
-		je Nullsetzen_16
-		sub edi, 8
-
-	Nullsetzen_16:
-		sub edi, 8
-
-	Nullsetzen_8:
-	  pxor xmm0, xmm0
-    mov ecx, edx
-    shr ecx, 3
-  CopyEintrag_0:
-    movq qword ptr [edi], xmm0
-		add edi, 8
-		loop CopyEintrag_0
-
-	Ende:
-		;emms
-		ret
-VMFrei_ScrollEintrage ENDP
 _Text ENDS
 ;----------------------------------------------------------------------------
 _Text SEGMENT
@@ -472,7 +412,6 @@ stSuchFrei_vsTabelle = 0
 		push esi
 		push edi
 
-    ;mov eax, ecx
 		mov ebx, dword ptr stSuchFrei_vsTabelle[ecx]
 		mov edx, dword ptr stSuchFrei_ulScrollSprung[ecx]
 
@@ -484,10 +423,11 @@ stSuchFrei_vsTabelle = 0
     add ecx, dword ptr ulBelegt[ebx]
     sub ecx, esi
 
-		;call VMFrei_ScrollEintrage
 		cmp edx, 8
 		je short Scroll_8
 
+		cmp ecx, 10h
+		jb short Scroll_8
 	CopyEintrag_16:
 		movdqu xmm0, xmmword ptr [esi]
 		movdqu xmmword ptr [edi], xmm0
@@ -500,7 +440,6 @@ stSuchFrei_vsTabelle = 0
 
 		mov eax, dword ptr vsNachsteSeite[ebx]
 		test eax, eax
-		;cmp dword ptr vsNachsteSeite[ebx], 0h
 		jne short Ende
 		jmp short Nullsetzen_8
 
@@ -511,11 +450,91 @@ stSuchFrei_vsTabelle = 0
 		movq qword ptr [edi], xmm0
 		mov edi, esi
 		add esi, 8
-		loop CopyEintrag_8
+		loop short CopyEintrag_8
 
 		mov eax, dword ptr vsNachsteSeite[ebx]
 		test eax, eax
-		;cmp dword ptr vsNachsteSeite[ebx], 0h
+		jne short Ende
+
+		cmp edx, 16
+		jl short Nullsetzen_8
+		je short Nullsetzen_16
+		sub edi, 8
+
+	Nullsetzen_16:
+		sub edi, 8
+
+	Nullsetzen_8:
+	  pxor xmm0, xmm0
+    mov ecx, edx
+    shr ecx, 3
+  CopyEintrag_0:
+    movq qword ptr [edi], xmm0
+		add edi, 8
+		loop short CopyEintrag_0
+
+	Ende:
+		pop	edi
+		pop	esi
+		pop	ebx
+		ret 0
+?VMFrei_ScrollEintrage_1@@YQXAAUSTSuchFrei@@@Z ENDP
+_Text ENDS
+;----------------------------------------------------------------------------
+_Text SEGMENT
+vsNachsteSeite = 12
+ulBelegt = 0
+
+stSuchFrei_ulScrollSprung = 20
+stSuchFrei_vsTabelle = 0
+?VMFrei_ScrollEintrage_2@@YQXAAUSTSuchFrei@@@Z PROC PUBLIC
+		push ebx
+		push esi
+		push edi
+
+    mov ebx, dword ptr stSuchFrei_vsTabelle[ecx]
+		mov edx, dword ptr stSuchFrei_ulScrollSprung[ecx]
+
+		mov edi, ebx
+    add edi, 10h
+    mov esi, edi
+    add esi, edx
+
+    mov ecx, dword ptr ulBelegt[ebx]
+    sub ecx, 10h
+    sub ecx, edx
+
+		cmp edx, 8
+		je short Scroll_8
+
+		cmp ecx, 10h
+		jb short Scroll_8
+	CopyEintrag_16:
+		movdqu xmm0, xmmword ptr [esi]
+		movdqu xmmword ptr [edi], xmm0
+		add edi, 16
+		add esi, 16
+		sub ecx, 16
+		cmp ecx, 8
+		jg short CopyEintrag_16
+		je short Scroll_8
+
+		mov eax, dword ptr vsNachsteSeite[ebx]
+		test eax, eax
+		jne short Ende
+		jmp short Nullsetzen_8
+
+	Scroll_8:
+		shr ecx, 3
+	CopyEintrag_8:
+		movq xmm0, qword ptr [esi]
+		movq qword ptr [edi], xmm0
+		mov edi, esi
+		add esi, 8
+		loop short CopyEintrag_8
+
+		mov eax, dword ptr vsNachsteSeite[ebx]
+		test eax, eax
 		jne short Ende
 
 		cmp edx, 16
@@ -540,105 +559,9 @@ stSuchFrei_vsTabelle = 0
 		pop	esi
 		pop	ebx
 		ret 0
-?VMFrei_ScrollEintrage_1@@YQXAAUSTSuchFrei@@@Z ENDP
-_Text ENDS
-;----------------------------------------------------------------------------
-_Text SEGMENT
-vsNachsteSeite = 12
-ulBelegt = 0
-
-stSuchFrei_ulScrollSprung = 20
-stSuchFrei_vsTabelle = 0
-?VMFrei_ScrollEintrage_2@@YQXAAUSTSuchFrei@@@Z PROC PUBLIC
-		push ebx
-		push esi
-		push edi
-
-    ;mov eax, ecx
-    mov ebx, dword ptr stSuchFrei_vsTabelle[ecx]
-		mov edx, dword ptr stSuchFrei_ulScrollSprung[ecx]
-
-		mov edi, ebx
-    add edi, 10h
-    mov esi, edi
-    add esi, edx
-
-    mov ecx, dword ptr ulBelegt[ebx]
-    sub ecx, 10h
-    sub ecx, edx
-
-		;call VMFrei_ScrollEintrage
-		cmp edx, 8
-		je Scroll_8
-
-	CopyEintrag_16:
-		movdqu xmm0, xmmword ptr [esi]
-		movdqu xmmword ptr [edi], xmm0
-		add edi, 16
-		add esi, 16
-		sub ecx, 16
-		cmp ecx, 8
-		jg CopyEintrag_16
-		je Scroll_8
-
-		mov eax, dword ptr vsNachsteSeite[ebx]
-		test eax, eax
-		jne Ende
-		jmp Nullsetzen_8
-
-	Scroll_8:
-		shr ecx, 3
-	CopyEintrag_8:
-		movq xmm0, qword ptr [esi]
-		movq qword ptr [edi], xmm0
-		mov edi, esi
-		add esi, 8
-		loop CopyEintrag_8
-
-		mov eax, dword ptr vsNachsteSeite[ebx]
-		test eax, eax
-		;cmp dword ptr vsNachsteSeite[ebx], 0h
-		jne Ende
-
-		cmp edx, 16
-		jl Nullsetzen_8
-		je Nullsetzen_16
-		sub edi, 8
-
-	Nullsetzen_16:
-		sub edi, 8
-
-	Nullsetzen_8:
-	  pxor xmm0, xmm0
-    mov ecx, edx
-    shr ecx, 3
-  CopyEintrag_0:
-    movq qword ptr [edi], xmm0
-		add edi, 8
-		loop CopyEintrag_0
-
-	Ende:
-		pop	edi
-		pop	esi
-		pop	ebx
-		ret 0
 ?VMFrei_ScrollEintrage_2@@YQXAAUSTSuchFrei@@@Z ENDP
 _Text ENDS
 CS_Memory ENDS
 ;----------------------------------------------------------------------------
 END
-;stSuchFrei_1 = 8
-;stSuchFrei_vsTabelle = 0
-;stSuchFrei_vsInhalt = 4
-;stSuchFrei_veEintrag = 8
-;stSuchFrei_veLetzterEintrag = 12
-;stSuchFrei_veLetzterEintragDoppelSeite = 16
-;stSuchFrei_ulScrollSprung = 20
-;stSuchFrei_veScrollEintrag = 24
-;stSuchFrei_ucAdresse = 28
-
-;stSuchBlock_vsInhalt = 12
-;stSuchBlock_ulInhaltBelegt = 16
-;stSuchBlock_veVorheriger = 24
-;stSuchBlock_veLetzterEintragDoppelSeite = 28
 

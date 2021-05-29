@@ -44,7 +44,7 @@ using PBIT256 = BIT256*;
 using BIT128A = __declspec(align(16)) BIT128;
 using BIT256A = __declspec(align(32)) BIT256;
 
-extern VMEMORY vmStandart;
+extern VMEMORY vmStandard;
 extern DWORD dwEineSpeicherSeite;
 extern DWORD dwDoppelSpeicherSeite;
 //---------------------------------------------------------------------------
