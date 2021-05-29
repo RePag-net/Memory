@@ -1801,8 +1801,8 @@ void __vectorcall VMFrei(_In_ VMEMORY vmSpeicher, _In_ STSuchFrei& stSuchFrei)
 									stSuchFrei.ulScrollSprung = 16;
 #else
 									stSuchFrei.ulScrollSprung = 32;
-								}
 #endif
+								}
 							}
 							else{
 								*stSuchFrei.veEintrag = *_ErsterEintragNachsteSeite;
@@ -1877,8 +1877,8 @@ void __vectorcall VMFrei(_In_ VMEMORY vmSpeicher, _In_ STSuchFrei& stSuchFrei)
 										stSuchFrei.ulScrollSprung = 16;
 #else
 										stSuchFrei.ulScrollSprung = 32;
-									}
 #endif
+									}
 								}
 								else if(stSuchFrei.veEintrag == _VorVorletzterEintragSeite){
 									if(_ErsterEintragNachsteSeite == _LetzterEintragNachsteSeite){
