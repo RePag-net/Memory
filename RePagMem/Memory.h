@@ -100,11 +100,10 @@ struct STVirtualSpeicher
 {
   VMSEITE vsErsteTabelle;
   VMSEITE vsLetzteTabelle;
-  VMSEITE vsReserveTabelle;
+  VMSEITE vsNeueTabelle;
   VMSEITE vsErsteInhalt;
   VMSEITE vsLetzteInhaltKlein;
   VMSEITE vsLetzteInhaltGross;
-  VMSEITE vsReserveInhalt;
   VMSEITE vsFrei;
   VMFREI vfFrei;
   VMFREI vfBlock;

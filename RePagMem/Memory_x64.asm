@@ -332,6 +332,8 @@ STSuchFrei_vsTabelle = 0
 		cmp rdx, 16
 		je short Scroll_16
 
+		cmp rcx, 20h
+		jb short Scroll_16
 	CopyEintrag_32:
 		vmovdqu ymm0, ymmword ptr [r9]
 		vmovdqu ymmword ptr [r10], ymm0
