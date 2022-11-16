@@ -6,7 +6,7 @@
 /****************************************************************************
 	The MIT License(MIT)
 
-	Copyright(c) 2021 René Pagel
+	Copyright(c) 2022 René Pagel
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this softwareand associated documentation files(the "Software"), to deal
@@ -709,6 +709,7 @@ Kleiner:
 
 					if(stSuchBlock.veEintrag == stSuchBlock.veLetzterEintragDoppelSeite){
 						stSuchBlock.vsTabelle = ((VMSEITENKOPF)stSuchBlock.vsTabelle)->vsNachste;
+
 #ifndef _64bit
 						stSuchBlock.veEintrag = (VMEINTRAG)&stSuchBlock.vsTabelle[16];
 						stSuchBlock.veLetzterEintragDoppelSeite = (VMEINTRAG)&stSuchBlock.vsTabelle[dwDoppelSpeicherSeite - 8];
@@ -724,37 +725,40 @@ Kleiner:
 				if(vbAdresse = VMEintragGleichOderGrosser(vmSpeicher, stSuchBlock, vbAdresse)) return vbAdresse;
 				else if(!(((VMSEITENKOPF)stSuchBlock.vsTabelle)->vsNachste) && LetzterEintrag(stSuchBlock)) break;
 				goto Kleiner;
-			} 
+			}
 			while(TRUE);
 
 			NeueInhaltSeite(vmSpeicher, stSuchBlock);
 
-			if(((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt == dwDoppelSpeicherSeite && stSuchBlock.veEintrag->ulBytes){
+			if(((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt == dwDoppelSpeicherSeite){
 				NeueTabelleSeite(vmSpeicher, stSuchBlock);
 				stSuchBlock.vsTabelle = ((VMSEITENKOPF)stSuchBlock.vsTabelle)->vsNachste;
+
 #ifndef _64bit
 				((VMEINTRAG)&_vmSpeicher->vsNeueTabelle[16])->ulBytes = dwDoppelSpeicherSeite - 16;
 				((VMEINTRAG)&_vmSpeicher->vsNeueTabelle[16])->vbAdresse = nullptr;
 				((VMSEITENKOPF)_vmSpeicher->vsNeueTabelle)->ulBelegt += 8;
+
+				stSuchBlock.veEintrag = (VMEINTRAG)&stSuchBlock.vsTabelle[16];
+				stSuchBlock.veLetzterEintragDoppelSeite = (VMEINTRAG)&stSuchBlock.vsTabelle[dwDoppelSpeicherSeite - 8];
 #else
 				((VMEINTRAG)&_vmSpeicher->vsNeueTabelle[32])->ulBytes = dwDoppelSpeicherSeite - 32;
 				((VMEINTRAG)&_vmSpeicher->vsNeueTabelle[32])->vbAdresse = nullptr;
 				((VMSEITENKOPF)_vmSpeicher->vsNeueTabelle)->ulBelegt += 16;
+
+				stSuchBlock.veEintrag = (VMEINTRAG)&stSuchBlock.vsTabelle[32];
+				stSuchBlock.veLetzterEintragDoppelSeite = (VMEINTRAG)&stSuchBlock.vsTabelle[dwDoppelSpeicherSeite - 16];
 #endif
+				stSuchBlock.veVorheriger = nullptr;
 			}
 			else{
-				if(stSuchBlock.veEintrag->ulBytes){
-					stSuchBlock.veEintrag++;
-					stSuchBlock.veEintrag->vbAdresse = nullptr;
+				stSuchBlock.veEintrag++;
+				stSuchBlock.veEintrag->vbAdresse = nullptr;
 #ifndef _64bit
-					((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt += 8;
-#else 
-					((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt += 16;
-#endif
-				}
-#ifndef _64bit
+				((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt += 8;
 				stSuchBlock.veEintrag->ulBytes = dwDoppelSpeicherSeite - 16;
-#else
+#else 
+				((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt += 16;
 				stSuchBlock.veEintrag->ulBytes = dwDoppelSpeicherSeite - 32;
 #endif
 				stSuchBlock.veVorheriger = nullptr;
@@ -781,11 +785,11 @@ VMBLOCK __vectorcall VMBlockS(_In_ VMEMORY vmSpeicher, _In_ unsigned long ulByte
 		stSuchBlock.ulBytes = ulBytes;
 		stSuchBlock.ucAlign = ucAlign;
 		stSuchBlock.ulInhaltBelegt = 0;
-		stSuchBlock.vsTabelle = _vmSpeicher->vsErsteTabelle;
+		stSuchBlock.vsTabelle = _vmSpeicher->vsLetzteTabelle;
 		stSuchBlock.vsInhalt = _vmSpeicher->vsLetzteInhaltKlein;
 		stSuchBlock.veVorheriger = nullptr;
-		stSuchBlock.vsTabelle = _vmSpeicher->vsLetzteTabelle;
 
+Kleiner:
 #ifndef _64bit
 		stSuchBlock.veLetzterEintragDoppelSeite = (VMEINTRAG)&stSuchBlock.vsTabelle[dwDoppelSpeicherSeite - 8];
 		stSuchBlock.veEintrag = (VMEINTRAG)&stSuchBlock.vsTabelle[((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt - 8];
@@ -809,44 +813,47 @@ VMBLOCK __vectorcall VMBlockS(_In_ VMEMORY vmSpeicher, _In_ unsigned long ulByte
 				vbAdresse = nullptr;
 				if(vbAdresse = VMEintragGleichOderGrosser(vmSpeicher, stSuchBlock, vbAdresse)) return vbAdresse;
 				else if(!(((VMSEITENKOPF)stSuchBlock.vsTabelle)->vsNachste) && LetzterEintrag(stSuchBlock)) break;
-			} 
+				goto Kleiner;
+			}
 			while(TRUE);
 
 			NeueInhaltSeite(vmSpeicher, stSuchBlock);
 
-			if(((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt == dwDoppelSpeicherSeite && stSuchBlock.veEintrag->ulBytes){
+			if(((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt == dwDoppelSpeicherSeite){
 				NeueTabelleSeite(vmSpeicher, stSuchBlock);
 				stSuchBlock.vsTabelle = ((VMSEITENKOPF)stSuchBlock.vsTabelle)->vsNachste;
 #ifndef _64bit
 				((VMEINTRAG)&_vmSpeicher->vsNeueTabelle[16])->ulBytes = dwDoppelSpeicherSeite - 16;
 				((VMEINTRAG)&_vmSpeicher->vsNeueTabelle[16])->vbAdresse = nullptr;
 				((VMSEITENKOPF)_vmSpeicher->vsNeueTabelle)->ulBelegt += 8;
+
+				stSuchBlock.veEintrag = (VMEINTRAG)&stSuchBlock.vsTabelle[16];
+				stSuchBlock.veLetzterEintragDoppelSeite = (VMEINTRAG)&stSuchBlock.vsTabelle[dwDoppelSpeicherSeite - 8];
 #else
 				((VMEINTRAG)&_vmSpeicher->vsNeueTabelle[32])->ulBytes = dwDoppelSpeicherSeite - 32;
 				((VMEINTRAG)&_vmSpeicher->vsNeueTabelle[32])->vbAdresse = nullptr;
 				((VMSEITENKOPF)_vmSpeicher->vsNeueTabelle)->ulBelegt += 16;
+
+				stSuchBlock.veEintrag = (VMEINTRAG)&stSuchBlock.vsTabelle[32];
+				stSuchBlock.veLetzterEintragDoppelSeite = (VMEINTRAG)&stSuchBlock.vsTabelle[dwDoppelSpeicherSeite - 16];
 #endif
+				stSuchBlock.veVorheriger = nullptr;
 			}
 			else{
-				if(stSuchBlock.veEintrag->ulBytes){
-					stSuchBlock.veEintrag++;
-					stSuchBlock.veEintrag->vbAdresse = nullptr;
+				stSuchBlock.veEintrag++;
+				stSuchBlock.veEintrag->vbAdresse = nullptr;
 #ifndef _64bit
-					((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt += 8;
-#else 
-					((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt += 16;
-#endif
-				}
-#ifndef _64bit
+				((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt += 8;
 				stSuchBlock.veEintrag->ulBytes = dwDoppelSpeicherSeite - 16;
-#else
+#else 
+				((VMSEITENKOPF)stSuchBlock.vsTabelle)->ulBelegt += 16;
 				stSuchBlock.veEintrag->ulBytes = dwDoppelSpeicherSeite - 32;
 #endif
 				stSuchBlock.veVorheriger = nullptr;
 			}
-		}
+			}
 		while(TRUE);
-	}
+		}
 }
 //---------------------------------------------------------------------------
 INLINE void __vectorcall VMFrei_Tabelle(_In_ VMEMORY vmSpeicher, _In_ STSuchFrei& stSuchFrei)
